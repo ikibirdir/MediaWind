@@ -1,6 +1,6 @@
 import Foundation
 
-public enum SortOrder: String, CaseIterable, Sendable {
+public enum MediaSortOrder: String, CaseIterable, Sendable {
     /// Natural order like Finder: IMG_2 before IMG_10, case-insensitive.
     case name
     /// Like Finder's Date Modified column: newest at the top.
@@ -9,11 +9,11 @@ public enum SortOrder: String, CaseIterable, Sendable {
 }
 
 public enum MediaSorter {
-    public static func sorted(_ items: [MediaItem], by order: SortOrder) -> [MediaItem] {
+    public static func sorted(_ items: [MediaItem], by order: MediaSortOrder) -> [MediaItem] {
         items.sorted { areInIncreasingOrder($0, $1, order) }
     }
 
-    public static func areInIncreasingOrder(_ a: MediaItem, _ b: MediaItem, _ order: SortOrder) -> Bool {
+    public static func areInIncreasingOrder(_ a: MediaItem, _ b: MediaItem, _ order: MediaSortOrder) -> Bool {
         switch order {
         case .name:
             return nameOrder(a, b)
@@ -43,9 +43,9 @@ public enum NavigationStep: Sendable {
 public struct MediaNavigator: Sendable {
     public private(set) var items: [MediaItem]
     public private(set) var currentIndex: Int
-    public private(set) var sortOrder: SortOrder
+    public private(set) var sortOrder: MediaSortOrder
 
-    public init(items: [MediaItem], current: MediaItem? = nil, sortOrder: SortOrder) {
+    public init(items: [MediaItem], current: MediaItem? = nil, sortOrder: MediaSortOrder) {
         self.sortOrder = sortOrder
         var all = items
         if let current, !all.contains(current) { all.append(current) }
@@ -100,7 +100,7 @@ public struct MediaNavigator: Sendable {
     }
 
     /// Re-sorts, keeping the current item current.
-    public mutating func setSortOrder(_ order: SortOrder) {
+    public mutating func setSortOrder(_ order: MediaSortOrder) {
         let keep = current
         sortOrder = order
         items = MediaSorter.sorted(items, by: order)
