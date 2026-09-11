@@ -11,7 +11,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillFinishLaunching(_ notification: Notification) {
         // Never reopen windows from a previous session; each launch shows what Finder asked for.
-        UserDefaults.standard.register(defaults: ["NSQuitAlwaysKeepsWindows": false])
+        // The View menu has its own full-screen items, so AppKit shouldn't add another.
+        UserDefaults.standard.register(defaults: ["NSQuitAlwaysKeepsWindows": false,
+                                                  "NSFullScreenMenuItemEverywhere": false])
         NSWindow.allowsAutomaticWindowTabbing = false
         NSApp.mainMenu = MainMenu.build()
     }

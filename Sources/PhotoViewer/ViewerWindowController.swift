@@ -127,8 +127,8 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
             arrow.alphaValue = 0
             arrow.isHidden = true
         }
-        leftArrow.action = { [weak self] in self?.navigate(.previous) }
-        rightArrow.action = { [weak self] in self?.navigate(.next) }
+        leftArrow.action = { [weak self] in self?.navigate(.previous, source: "arrow button") }
+        rightArrow.action = { [weak self] in self?.navigate(.next, source: "arrow button") }
         titleOverlay.alphaValue = 0
         titleOverlay.isHidden = true
         banner.isHidden = true
@@ -186,10 +186,10 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
 
         if modifiers.isEmpty {
             switch event.keyCode {
-            case 123: navigate(.previous, isRepeat: event.isARepeat); return true
-            case 124: navigate(.next, isRepeat: event.isARepeat); return true
-            case 115: navigate(.first); return true
-            case 119: navigate(.last); return true
+            case 123: navigate(.previous, isRepeat: event.isARepeat, source: "key"); return true
+            case 124: navigate(.next, isRepeat: event.isARepeat, source: "key"); return true
+            case 115: navigate(.first, source: "key"); return true
+            case 119: navigate(.last, source: "key"); return true
             case 49: togglePlayPause(nil); return true
             case 53: escapeAction(nil); return true
             default: break
@@ -309,8 +309,9 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
 
     // MARK: - Navigation
 
-    func navigate(_ step: NavigationStep, isRepeat: Bool = false) {
+    func navigate(_ step: NavigationStep, isRepeat: Bool = false, source: String = "menu") {
         guard !navigator.isEmpty else { return }
+        Perf.log.notice("navigate \(String(describing: step), privacy: .public) from \(source, privacy: .public)\(isRepeat ? " (repeat)" : "", privacy: .public) at \(self.navigator.positionDescription ?? "-", privacy: .public)")
         if isRepeat {
             isFlying = true
             // Fallback in case the key-up gets lost.

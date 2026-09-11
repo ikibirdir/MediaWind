@@ -41,14 +41,30 @@ enum DebugHook {
                 }
             }
             let window = NSApp.keyWindow ?? viewer?.window
+            Perf.log.notice("debug hook injects: \(command, privacy: .public)")
             if verb != "up" { postKey(code, flags: flags, up: false, isRepeat: verb == "repeat", window: window) }
             if verb == "key" || verb == "up" { postKey(code, flags: flags, up: true, isRepeat: false, window: window) }
         case "state":
             guard parts.count > 1 else { return }
             writeState(to: parts[1], viewer: viewer)
         case "snapshot":
-            guard parts.count > 1, let view = NSApp.keyWindow?.contentView ?? viewer?.window?.contentView else { return }
-            snapshot(view, to: parts[1])
+            let window = NSApp.keyWindow ?? viewer?.window ?? NSApp.windows.first { $0.isVisible && $0.contentView != nil }
+            guard parts.count > 1, let view = window?.contentView else { return }
+            if view is ViewerRootView {
+                snapshot(view, to: parts[1])
+            } else {
+                // SwiftUI and other AppKit-drawn windows: draw through AppKit instead of the layer tree.
+                guard let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { return }
+                view.cacheDisplay(in: view.bounds, to: rep)
+                try? rep.representation(using: .png, properties: [:])?.write(to: URL(fileURLWithPath: parts[1]))
+            }
+        case "action":
+            // action <selector:> [tag]: sends a menu command through the responder chain.
+            guard parts.count > 1 else { return }
+            let sender = NSMenuItem(title: "", action: nil, keyEquivalent: "")
+            sender.tag = parts.count > 2 ? Int(parts[2]) ?? 0 : 0
+            Perf.log.notice("debug hook action: \(command, privacy: .public)")
+            NSApp.sendAction(Selector(parts[1]), to: nil, from: sender)
         default:
             break
         }

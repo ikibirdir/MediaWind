@@ -94,9 +94,10 @@ enum MainMenu {
         menu.addItem(sortItem)
         menu.addItem(.separator())
 
-        // F and ⌃⌘F: the second is an alternate, shown while holding ⌃⌘.
-        let fullScreen = item("Toggle Full Screen", #selector(NSWindow.toggleFullScreen(_:)), "f", [])
-        let fullScreenAlt = item("Toggle Full Screen", #selector(NSWindow.toggleFullScreen(_:)), "f", [.control, .command])
+        // F and ⌃⌘F: the second is an alternate, shown while holding ⌃⌘. A viewer-only action
+        // (not NSWindow's toggleFullScreen:), so a bare F still types in other windows' text fields.
+        let fullScreen = item("Enter Full Screen", #selector(ViewerWindowController.toggleViewerFullScreen(_:)), "f", [])
+        let fullScreenAlt = item("Enter Full Screen", #selector(ViewerWindowController.toggleViewerFullScreen(_:)), "f", [.control, .command])
         fullScreenAlt.isAlternate = true
         menu.addItem(fullScreen)
         menu.addItem(fullScreenAlt)

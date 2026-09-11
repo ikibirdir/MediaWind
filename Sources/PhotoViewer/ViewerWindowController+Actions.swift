@@ -174,6 +174,10 @@ extension ViewerWindowController: NSMenuItemValidation {
     }
     @objc func zoomToActualSize(_ sender: Any?) { imageView.zoomToActualSize() }
 
+    @objc func toggleViewerFullScreen(_ sender: Any?) {
+        window?.toggleFullScreen(nil)
+    }
+
     @objc func escapeAction(_ sender: Any?) {
         if isFullScreen {
             window?.toggleFullScreen(nil)
@@ -250,6 +254,9 @@ extension ViewerWindowController: NSMenuItemValidation {
         case #selector(changeSortOrder(_:)):
             let orders: [MediaSortOrder] = [.name, .dateModifiedNewestFirst, .dateModifiedOldestFirst]
             menuItem.state = orders.indices.contains(menuItem.tag) && orders[menuItem.tag] == sortOrder ? .on : .off
+            return true
+        case #selector(toggleViewerFullScreen(_:)):
+            menuItem.title = isFullScreen ? "Exit Full Screen" : "Enter Full Screen"
             return true
         case #selector(togglePlayPause(_:)):
             return player != nil
