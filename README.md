@@ -76,9 +76,10 @@ Finder: IMG_2 before IMG_10) and date modified (newest or oldest first). The cho
 - Finder ▸ Open With ▸ PhotoViewer opens straight into the photo, with no welcome window flash.
   Launching without a file shows a small welcome window with Open… and the default-app buttons.
 - The opened file shows first. The folder is listed in the background, then the title fills in
-  the position ("IMG_1234.HEIC — 12 of 348"). Measured on this machine: first photo on screen
-  about 0.3 s after launch; in a 5,000-file folder the photo is up in about 40 ms and the list in
-  about 0.35 s.
+  the position ("IMG_1234.HEIC — 12 of 348"). Measured on this machine: from a cold start, the
+  photo is on screen about 0.1 s after Finder's open request (about 0.3 s after the process
+  starts); when PhotoViewer is already running, 20–100 ms. A 5,000-file folder is listed and
+  sorted in 0.25–0.35 s in the background.
 - Opening files while the app runs shows them in the same window. Opening several files at once
   browses just those.
 - Photos are decoded off the main thread at the window's pixel size, and at full resolution only
