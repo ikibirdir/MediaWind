@@ -123,6 +123,32 @@ Finder: IMG_2 before IMG_10) and date modified (newest or oldest first). The cho
 - Camera RAW support is whatever macOS supports. Unsupported cameras get the message.
 - The window is not restored between launches (by design: each launch shows what Finder asked for).
 
+## Troubleshooting
+
+**"Apple could not verify “photo.jpg” is free of malware…", and afterwards the photo won't open
+in any app.** This isn't PhotoViewer; it happens with any app. It affects files that are both:
+
+- *downloaded*: they carry macOS's quarantine flag, e.g. photos from a Google Takeout zip; and
+- *marked executable*: common after copying through FAT/exFAT/NTFS drives or with some unzip tools.
+
+Using Finder's Open With ▸ Other… with **Always Open With** on such a file writes a per-file app
+binding. macOS then treats the photo like a script bound to an app, and Gatekeeper finds no
+signature and blocks it. Dismissing the dialog records a rejection, so every app refuses the
+file afterwards. The photo itself is fine. To check and fix a folder (file contents aren't
+changed):
+
+```sh
+find "FOLDER" -type f -perm +111 | head                   # any executable files?
+find "FOLDER" -type f -perm +111 -exec chmod a-x {} +     # remove the execute bit (files only)
+find "FOLDER" -xattrname com.apple.LaunchServices.OpenWith \
+     -exec xattr -d com.apple.LaunchServices.OpenWith {} +  # remove per-file Open With bindings
+find "FOLDER" -xattrname com.apple.quarantine \
+     -exec xattr -d com.apple.quarantine {} +             # optional: clear quarantine (trusted files only)
+```
+
+To make PhotoViewer the default without per-file bindings, use PhotoViewer ▸ Default Viewer,
+or Get Info ▸ Open with ▸ *Change All…*.
+
 ## Two-minute manual test
 
 Generate test media first (it goes into `TestMedia/`, which git ignores):
