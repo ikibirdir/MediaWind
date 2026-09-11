@@ -126,15 +126,20 @@ Finder: IMG_2 before IMG_10) and date modified (newest or oldest first). The cho
 ## Troubleshooting
 
 **"Apple could not verify “photo.jpg” is free of malware…", and afterwards the photo won't open
-in any app.** This happens with *downloaded* files (they carry macOS's quarantine flag, e.g.
-photos from a Google Takeout zip) that get a per-file app binding. That binding is what Finder
-writes when you use Open With ▸ Other… with **Always Open With** checked, or Get Info ▸ Open with
-without *Change All*.
+in any app.** This is macOS behavior, not specific to PhotoViewer (it also happens with TextEdit,
+browsers and office apps). It hits *flagged* files that you open through Open With ▸ Other…,
+especially with **Always Open With** checked, which writes a per-file app binding (so does Get Info
+▸ Open with without *Change All*).
 
-macOS treats a downloaded file that insists on a particular app the way it treats a downloaded
+- *Flagged* means the file carries macOS's quarantine flag. Browsers set it on downloads, e.g.
+  photos from a Google Takeout zip.
+- Sandboxed apps like Preview and QuickTime Player also set it on files they open, so a photo you
+  once viewed in Preview counts as flagged.
+
+macOS treats a flagged file that insists on a particular app the way it treats a downloaded
 program: Gatekeeper vets it, finds no signature and blocks it. Dismissing the dialog records a
-rejection, so every app refuses the file afterwards. The photo itself is fine. (Verified with
-PhotoViewer as the bound app; the file's execute bit plays no role.)
+rejection, so every app refuses the file afterwards. The file itself is fine. The file's execute
+bit plays no role.
 
 To check and fix a folder (file contents aren't changed):
 
