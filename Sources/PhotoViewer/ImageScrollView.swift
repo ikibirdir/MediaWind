@@ -59,6 +59,8 @@ final class ImageScrollView: NSScrollView {
     /// Called after any zoom change settles.
     var onZoomChange: (() -> Void)?
     private var isRetiling = false
+    /// True while a pinch is in progress: tile() must not snap the image back to fit.
+    private var isLiveMagnifying = false
 
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -74,6 +76,8 @@ final class ImageScrollView: NSScrollView {
         verticalScrollElasticity = .none
         allowsMagnification = true
         documentView = layerView
+        NotificationCenter.default.addObserver(self, selector: #selector(liveMagnifyWillStart),
+                                               name: NSScrollView.willStartLiveMagnifyNotification, object: self)
         NotificationCenter.default.addObserver(self, selector: #selector(liveMagnifyDidEnd),
                                                name: NSScrollView.didEndLiveMagnifyNotification, object: self)
     }
@@ -209,15 +213,23 @@ final class ImageScrollView: NSScrollView {
     }
 
     override func magnify(with event: NSEvent) {
+        // Leave "fitted" before the magnification changes: otherwise the layout pass that
+        // follows would snap the image straight back to fit and the pinch would do nothing.
+        isFit = false
         super.magnify(with: event)
-        isFit = magnification <= fitMagnification * 1.001
     }
 
     override func smartMagnify(with event: NSEvent) {
         toggleFitActualSize(at: contentView.convert(event.locationInWindow, from: nil))
     }
 
+    @objc private func liveMagnifyWillStart(_ notification: Notification) {
+        isLiveMagnifying = true
+        isFit = false
+    }
+
     @objc private func liveMagnifyDidEnd(_ notification: Notification) {
+        isLiveMagnifying = false
         if magnification <= fitMagnification * 1.01 { zoomToFit() } else { isFit = false }
         updateCursor()
         onZoomChange?()
@@ -226,7 +238,7 @@ final class ImageScrollView: NSScrollView {
     /// Keeps the image fitted while the window is resized or goes full screen.
     override func tile() {
         super.tile()
-        guard !isRetiling, hasImage else { return }
+        guard !isRetiling, !isLiveMagnifying, hasImage else { return }
         isRetiling = true
         updateLimits()
         if isFit || magnification < minMagnification { zoomToFit() }

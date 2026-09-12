@@ -58,6 +58,25 @@ enum DebugHook {
                 view.cacheDisplay(in: view.bounds, to: rep)
                 try? rep.representation(using: .png, properties: [:])?.write(to: URL(fileURLWithPath: parts[1]))
             }
+        case "setdefault":
+            // The same request the Default Viewer menu makes, minus the confirmation alert.
+            guard parts.count > 1 else { return }
+            let group: MediaGroup = parts[1] == "videos" ? .videos : .photos
+            let types = DefaultApps.types(for: group)
+            Perf.log.notice("debug hook setdefault \(parts[1], privacy: .public): \(types.count, privacy: .public) types")
+            for type in types {
+                NSWorkspace.shared.setDefaultApplication(at: Bundle.main.bundleURL, toOpen: type) { error in
+                    Perf.log.notice("setdefault \(type.identifier, privacy: .public): \(error?.localizedDescription ?? "ok", privacy: .public)")
+                }
+            }
+        case "pinch":
+            // Mimics a trackpad pinch: the same notifications and magnification change a live
+            // magnify produces, so the fit/zoom bookkeeping is exercised for real.
+            guard parts.count > 1, let factor = Double(parts[1]), let scrollView = viewer?.imageView else { return }
+            Perf.log.notice("debug hook pinch: \(factor, privacy: .public)")
+            NotificationCenter.default.post(name: NSScrollView.willStartLiveMagnifyNotification, object: scrollView)
+            scrollView.magnification *= CGFloat(factor)
+            NotificationCenter.default.post(name: NSScrollView.didEndLiveMagnifyNotification, object: scrollView)
         case "action":
             // action <selector:> [tag]: sends a menu command through the responder chain.
             guard parts.count > 1 else { return }
