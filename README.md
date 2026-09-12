@@ -39,6 +39,11 @@ so it shows up in Finder's **Open With** menu.
   file, has the same buttons. It covers JPEG, HEIC/HEIF, PNG, GIF, TIFF, BMP, WebP, AVIF,
   JPEG 2000, ICO and common camera RAW formats. For videos it covers MP4, MOV, M4V and 3GP.
 - **Undo:** PhotoViewer ▸ Default Viewer ▸ *Restore Preview and QuickTime Player…*
+
+macOS asks you to confirm each change: it shows a small system panel per file type, and the
+change only takes effect once you click it. The panels can end up stacked behind other windows,
+so look for them if nothing seems to happen. A command-line script can't do this instead — the
+request is dropped when the script exits, even though the API reports success.
 - **By hand, per file type:** in Finder, select a file ▸ Get Info ▸ *Open with* ▸ pick an app ▸
   *Change All…*
 
