@@ -1,11 +1,48 @@
 import Foundation
 
-public enum MediaSortOrder: String, CaseIterable, Sendable {
-    /// Natural order like Finder: IMG_2 before IMG_10, case-insensitive.
+/// The orders Finder can arrange a folder by, and that PhotoViewer can follow.
+public enum MediaSortKey: String, CaseIterable, Sendable {
     case name
-    /// Like Finder's Date Modified column: newest at the top.
-    case dateModifiedNewestFirst
-    case dateModifiedOldestFirst
+    case kind
+    case dateCreated
+    case dateModified
+    case dateAdded
+    case dateLastOpened
+    case size
+
+    public var isDate: Bool {
+        self == .dateCreated || self == .dateModified || self == .dateAdded || self == .dateLastOpened
+    }
+
+    /// The direction Finder uses by default: names and kinds A→Z, dates newest first,
+    /// biggest files first.
+    public var defaultAscending: Bool {
+        switch self {
+        case .name, .kind: return true
+        case .dateCreated, .dateModified, .dateAdded, .dateLastOpened, .size: return false
+        }
+    }
+}
+
+public struct MediaSortOrder: Equatable, Sendable {
+    public var key: MediaSortKey
+    public var ascending: Bool
+
+    public init(_ key: MediaSortKey, ascending: Bool? = nil) {
+        self.key = key
+        self.ascending = ascending ?? key.defaultAscending
+    }
+
+    public static let byName = MediaSortOrder(.name)
+
+    /// "dateCreated:desc", for UserDefaults.
+    public var rawValue: String { "\(key.rawValue):\(ascending ? "asc" : "desc")" }
+
+    public init?(rawValue: String) {
+        let parts = rawValue.split(separator: ":", maxSplits: 1)
+        guard let key = parts.first.flatMap({ MediaSortKey(rawValue: String($0)) }) else { return nil }
+        self.init(key, ascending: parts.count > 1 ? parts[1] == "asc" : nil)
+    }
 }
 
 public enum MediaSorter {
@@ -14,18 +51,27 @@ public enum MediaSorter {
     }
 
     public static func areInIncreasingOrder(_ a: MediaItem, _ b: MediaItem, _ order: MediaSortOrder) -> Bool {
-        switch order {
+        // Finder keeps the name as the tie-break, always ascending.
+        switch order.key {
         case .name:
+            return order.ascending ? nameOrder(a, b) : nameOrder(b, a)
+        case .kind:
+            if a.typeDescription != b.typeDescription {
+                let ascending = a.typeDescription.localizedStandardCompare(b.typeDescription) == .orderedAscending
+                return order.ascending ? ascending : !ascending
+            }
             return nameOrder(a, b)
-        case .dateModifiedNewestFirst:
-            if a.modificationDate != b.modificationDate { return a.modificationDate > b.modificationDate }
+        case .size:
+            if a.size != b.size { return order.ascending ? a.size < b.size : a.size > b.size }
             return nameOrder(a, b)
-        case .dateModifiedOldestFirst:
-            if a.modificationDate != b.modificationDate { return a.modificationDate < b.modificationDate }
+        case .dateCreated, .dateModified, .dateAdded, .dateLastOpened:
+            let left = a.date(for: order.key), right = b.date(for: order.key)
+            if left != right { return order.ascending ? left < right : left > right }
             return nameOrder(a, b)
         }
     }
 
+    /// Natural order like Finder: IMG_2 before IMG_10, case-insensitive.
     private static func nameOrder(_ a: MediaItem, _ b: MediaItem) -> Bool {
         switch a.name.localizedStandardCompare(b.name) {
         case .orderedAscending: return true

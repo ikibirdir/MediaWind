@@ -130,6 +130,9 @@ enum DebugHook {
             state["position"] = viewer.navigator.positionDescription ?? NSNull()
             state["count"] = viewer.navigator.count
             state["sort"] = viewer.navigator.sortOrder.rawValue
+            state["sortSource"] = viewer.sortSource
+            state["followsFinder"] = viewer.followsFinderOrder
+            state["order"] = viewer.navigator.items.prefix(6).map(\.name)
             state["imageVisible"] = !image.isHidden
             state["isFit"] = image.isFit
             state["magnification"] = Double(image.magnification)

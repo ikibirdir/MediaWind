@@ -4,11 +4,25 @@ public struct MediaItem: Hashable, Sendable {
     public let url: URL
     public let kind: MediaKind
     public let modificationDate: Date
+    public let creationDate: Date
+    /// When the file appeared in this folder (Finder's "Date Added").
+    public let addedDate: Date
+    public let lastOpenedDate: Date
+    public let size: Int64
+    /// Finder's "Kind" column text, e.g. "JPEG image".
+    public let typeDescription: String
 
-    public init(url: URL, kind: MediaKind, modificationDate: Date) {
+    public init(url: URL, kind: MediaKind, modificationDate: Date, creationDate: Date? = nil,
+                addedDate: Date? = nil, lastOpenedDate: Date? = nil, size: Int64 = 0,
+                typeDescription: String = "") {
         self.url = url
         self.kind = kind
         self.modificationDate = modificationDate
+        self.creationDate = creationDate ?? modificationDate
+        self.addedDate = addedDate ?? creationDate ?? modificationDate
+        self.lastOpenedDate = lastOpenedDate ?? .distantPast
+        self.size = size
+        self.typeDescription = typeDescription
     }
 
     public var name: String { url.lastPathComponent }
@@ -19,6 +33,16 @@ public struct MediaItem: Hashable, Sendable {
 
     public static func == (lhs: MediaItem, rhs: MediaItem) -> Bool { lhs.key == rhs.key }
     public func hash(into hasher: inout Hasher) { hasher.combine(key) }
+
+    public func date(for key: MediaSortKey) -> Date {
+        switch key {
+        case .dateCreated: return creationDate
+        case .dateModified: return modificationDate
+        case .dateAdded: return addedDate
+        case .dateLastOpened: return lastOpenedDate
+        default: return modificationDate
+        }
+    }
 }
 
 public enum FolderScanError: Error, Equatable {
@@ -31,6 +55,7 @@ public enum FolderScanError: Error, Equatable {
 public enum FolderScanner {
     private static let resourceKeys: [URLResourceKey] = [
         .isRegularFileKey, .isSymbolicLinkKey, .isHiddenKey, .contentModificationDateKey,
+        .creationDateKey, .addedToDirectoryDateKey, .fileSizeKey,
     ]
 
     /// Hidden files, including the AppleDouble `._name` files macOS leaves on exFAT/FAT drives.
@@ -73,7 +98,30 @@ public enum FolderScanner {
         }
         guard isFile else { return nil }
 
-        return MediaItem(url: url, kind: kind, modificationDate: values.contentModificationDate ?? .distantPast)
+        let modified = values.contentModificationDate ?? .distantPast
+        return MediaItem(url: url,
+                         kind: kind,
+                         modificationDate: modified,
+                         creationDate: values.creationDate ?? modified,
+                         addedDate: values.addedToDirectoryDate ?? values.creationDate ?? modified,
+                         lastOpenedDate: lastOpenedDate(of: url) ?? .distantPast,
+                         size: Int64(values.fileSize ?? 0),
+                         typeDescription: MediaClassifier.typeDescription(of: url))
+    }
+
+    /// Finder's "Date Last Opened", which LaunchServices keeps in an extended attribute.
+    /// The value is two little-endian 64-bit numbers: seconds and microseconds since 1970.
+    static func lastOpenedDate(of url: URL) -> Date? {
+        // The attribute is 16 bytes (seconds, then microseconds); asking for fewer fails.
+        var value = (Int64(0), Int64(0))
+        let read = url.withUnsafeFileSystemRepresentation { path -> Int in
+            guard let path else { return -1 }
+            return withUnsafeMutableBytes(of: &value) { buffer in
+                getxattr(path, "com.apple.lastuseddate#PS", buffer.baseAddress, buffer.count, 0, 0)
+            }
+        }
+        guard read >= 8, value.0 > 0 else { return nil }
+        return Date(timeIntervalSince1970: TimeInterval(value.0))
     }
 
     static func classify(_ error: Error) -> FolderScanError {

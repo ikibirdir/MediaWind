@@ -135,6 +135,19 @@ extension ViewerWindowController {
                     buttons: [finder, openWith])
     }
 
+    /// Shown while a folder listing is stuck, which on macOS means a pending privacy prompt.
+    func showWaitingForAccessBanner(_ folder: URL) {
+        let settings = NSButton(title: "Open Privacy Settings…", target: self, action: #selector(openPrivacySettings(_:)))
+        settings.controlSize = .small
+        let dismiss = NSButton(title: "Dismiss", target: self, action: #selector(dismissBanner(_:)))
+        dismiss.controlSize = .small
+        banner.configure(
+            text: "Waiting for permission to read “\(folder.lastPathComponent)”. If macOS asked whether "
+                + "PhotoViewer may access this folder, click Allow; until then only this file is shown.",
+            buttons: [settings, dismiss])
+        banner.isHidden = false
+    }
+
     func showAccessBanner(_ folder: URL) {
         let settings = NSButton(title: "Open Privacy Settings…", target: self, action: #selector(openPrivacySettings(_:)))
         settings.controlSize = .small
@@ -186,12 +199,46 @@ extension ViewerWindowController: NSMenuItemValidation {
         }
     }
 
+    static let sortKeysByTag: [Int: MediaSortKey] = [
+        1: .name, 2: .kind, 3: .dateCreated, 4: .dateModified, 5: .dateAdded, 6: .dateLastOpened, 7: .size,
+    ]
+
     @objc func changeSortOrder(_ sender: NSMenuItem) {
-        let orders: [MediaSortOrder] = [.name, .dateModifiedNewestFirst, .dateModifiedOldestFirst]
-        guard orders.indices.contains(sender.tag) else { return }
-        let order = orders[sender.tag]
+        if sender.tag == 0 {
+            followsFinderOrder = true
+            reapplyFinderOrder()
+            return
+        }
+        guard let key = Self.sortKeysByTag[sender.tag] else { return }
+        followsFinderOrder = false
+        // Keep the direction if the same key is picked again, else use Finder's default for it.
+        let ascending = key == fixedSortOrder.key ? fixedSortOrder.ascending : key.defaultAscending
+        apply(MediaSortOrder(key, ascending: ascending), source: "View menu")
+    }
+
+    @objc func toggleSortDirection(_ sender: Any?) {
+        followsFinderOrder = false
+        var order = navigator.sortOrder
+        order.ascending.toggle()
+        apply(order, source: "View menu")
+    }
+
+    /// Re-reads how Finder is showing the current folder and follows it.
+    func reapplyFinderOrder() {
+        guard let folder = currentFolder else { return }
+        DispatchQueue.global(qos: .userInitiated).async {
+            let arrangement = FinderSort.arrangement(for: folder)
+            DispatchQueue.main.async { [weak self] in
+                self?.apply(arrangement?.order ?? .byName,
+                            source: arrangement?.source ?? "name (Finder has no setting)")
+            }
+        }
+    }
+
+    func apply(_ order: MediaSortOrder, source: String) {
+        if !followsFinderOrder { fixedSortOrder = order }
+        sortSource = source
         guard order != navigator.sortOrder else { return }
-        sortOrder = order
         // Sorting thousands of names with Finder's comparison takes a moment: do it off the main thread.
         var snapshot = navigator
         let version = listVersion
@@ -206,6 +253,7 @@ extension ViewerWindowController: NSMenuItemValidation {
                 } else {
                     self.navigator.setSortOrder(order)
                 }
+                Perf.log.notice("sort: \(order.rawValue, privacy: .public) from \(source, privacy: .public)")
                 self.updateTitle()
                 self.updateArrows()
                 self.showCurrent()
@@ -252,9 +300,17 @@ extension ViewerWindowController: NSMenuItemValidation {
         case #selector(zoomIn(_:)), #selector(zoomOut(_:)), #selector(zoomToFit(_:)), #selector(zoomToActualSize(_:)):
             return isImage
         case #selector(changeSortOrder(_:)):
-            let orders: [MediaSortOrder] = [.name, .dateModifiedNewestFirst, .dateModifiedOldestFirst]
-            menuItem.state = orders.indices.contains(menuItem.tag) && orders[menuItem.tag] == sortOrder ? .on : .off
+            if menuItem.tag == 0 {
+                menuItem.state = followsFinderOrder ? .on : .off
+            } else {
+                let key = Self.sortKeysByTag[menuItem.tag]
+                menuItem.state = !followsFinderOrder && key == navigator.sortOrder.key ? .on : .off
+            }
             return true
+        case #selector(toggleSortDirection(_:)):
+            let order = navigator.sortOrder
+            menuItem.state = order.ascending != order.key.defaultAscending ? .on : .off
+            return !followsFinderOrder
         case #selector(toggleViewerFullScreen(_:)):
             menuItem.title = isFullScreen ? "Exit Full Screen" : "Enter Full Screen"
             return true

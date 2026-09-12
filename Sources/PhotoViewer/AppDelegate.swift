@@ -1,4 +1,5 @@
 import AppKit
+import PhotoViewerCore
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -16,6 +17,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                                                   "NSFullScreenMenuItemEverywhere": false])
         NSWindow.allowsAutomaticWindowTabbing = false
         NSApp.mainMenu = MainMenu.build()
+        FinderSort.diagnostics = { message in
+            Perf.log.notice("FinderSort: \(message, privacy: .public)")
+        }
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {

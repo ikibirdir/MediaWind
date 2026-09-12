@@ -73,8 +73,22 @@ PDFs are never claimed. Preview keeps those.
 | ⌘W | Close |
 | ⌘/ | Show this list |
 
-Every command is also in the menu bar. View ▸ Sort By switches between name (natural order like
-Finder: IMG_2 before IMG_10) and date modified (newest or oldest first). The choice is remembered.
+Every command is also in the menu bar.
+
+### Browsing order
+
+By default (View ▸ Sort By ▸ **Follow Finder**) PhotoViewer browses in the order Finder shows the
+folder in, so ← → match what you see in the Finder window. It reads the folder's view settings
+from the `.DS_Store` file Finder keeps (in the folder itself, or in its parent under the folder's
+name), falling back to Finder's global view preferences, and finally to name order.
+
+Finder's orders are all supported: Name, Kind, Date Created, Date Modified, Date Added, Date Last
+Opened and Size, in the same direction Finder uses (names and kinds A→Z, dates newest first,
+biggest files first), with the name as tie-break. Picking any of them from the Sort By menu stops
+following Finder and is remembered; **Reverse Order** flips the direction. Name order is natural
+like Finder's: IMG_2 before IMG_10.
+
+Arrangements with no equivalent here (manual/grid, tags, labels) fall back to name order.
 
 ## What's done
 

@@ -25,7 +25,11 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
     let spinner = NSProgressIndicator()
 
     // MARK: State
-    var navigator = MediaNavigator(items: [], sortOrder: .name)
+    var navigator = MediaNavigator(items: [], sortOrder: .byName)
+    /// The folder being browsed, if any (not set when several files were opened at once).
+    var currentFolder: URL?
+    /// Where the current order came from, e.g. "parent's .DS_Store (icon view)".
+    var sortSource = "name"
     let loader = ImageLoader()
     var scanState = ScanState.done
     /// Bumped on every open; stale background scans and sorts are discarded.
@@ -42,6 +46,9 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
     var keyMonitor: Any?
     var spinnerTimer: Timer?
     var idleTimer: Timer?
+    /// Fires if listing the folder takes suspiciously long, which usually means macOS is
+    /// waiting for the user to allow access to it.
+    var scanHintTimer: Timer?
     var mouseLocation: NSPoint?
     var isFullScreen = false
     var openTime: CFAbsoluteTime = 0
@@ -54,10 +61,20 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
     /// Videos start muted each launch; unmuting carries over to the next video until quit.
     var isMuted = true
 
-    var sortOrder: MediaSortOrder {
-        get { MediaSortOrder(rawValue: UserDefaults.standard.string(forKey: "MediaSortOrder") ?? "") ?? .name }
-        set { UserDefaults.standard.set(newValue.rawValue, forKey: "MediaSortOrder") }
+    /// Browse in the order Finder shows the folder in (the default), rather than a fixed order.
+    var followsFinderOrder: Bool {
+        get { UserDefaults.standard.object(forKey: "FollowFinderOrder") as? Bool ?? true }
+        set { UserDefaults.standard.set(newValue, forKey: "FollowFinderOrder") }
     }
+
+    /// The order chosen in the View menu, used when not following Finder.
+    var fixedSortOrder: MediaSortOrder {
+        get { MediaSortOrder(rawValue: UserDefaults.standard.string(forKey: "SortOrder") ?? "") ?? .byName }
+        set { UserDefaults.standard.set(newValue.rawValue, forKey: "SortOrder") }
+    }
+
+    /// The order to use before a folder's own arrangement is known.
+    var currentOrder: MediaSortOrder { followsFinderOrder ? navigator.sortOrder : fixedSortOrder }
 
     var currentURL: URL? { navigator.current?.url }
 
@@ -88,7 +105,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
 
         buildViews()
         installKeyMonitor()
-        navigator = MediaNavigator(items: [], sortOrder: sortOrder)
+        navigator = MediaNavigator(items: [], sortOrder: currentOrder)
     }
 
     required init?(coder: NSCoder) { fatalError() }
@@ -228,7 +245,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
         var isDirectory: ObjCBool = false
         if urls.count == 1, FileManager.default.fileExists(atPath: urls[0].path, isDirectory: &isDirectory),
            isDirectory.boolValue {
-            navigator = MediaNavigator(items: [], sortOrder: sortOrder)
+            navigator = MediaNavigator(items: [], sortOrder: currentOrder)
             scanState = .scanning
             imageView.clear()
             startSpinnerTimer()
@@ -236,13 +253,13 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
         } else if urls.count == 1 {
             // Show the opened file right away; the folder is listed in the background.
             let item = Self.item(for: urls[0])
-            navigator = MediaNavigator(items: [item], current: item, sortOrder: sortOrder)
+            navigator = MediaNavigator(items: [item], current: item, sortOrder: currentOrder)
             scanState = .scanning
             showCurrent()
             scanFolder(urls[0].deletingLastPathComponent(), keeping: item)
         } else {
             // Several files at once: browse just those.
-            navigator = MediaNavigator(items: urls.map(Self.item(for:)), sortOrder: sortOrder)
+            navigator = MediaNavigator(items: urls.map(Self.item(for:)), sortOrder: currentOrder)
             scanState = .done
             showCurrent()
         }
@@ -258,9 +275,20 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
 
     private func scanFolder(_ folder: URL, keeping item: MediaItem?) {
         let generation = self.generation
-        let order = sortOrder
+        let follows = followsFinderOrder
+        let fallback = fixedSortOrder
         let start = CFAbsoluteTimeGetCurrent()
+        currentFolder = folder
+        Perf.log.notice("scan folder: \(folder.path, privacy: .public) (follow Finder: \(follows, privacy: .public))")
+        scanHintTimer?.invalidate()
+        scanHintTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { [weak self] _ in
+            self?.showWaitingForAccessBanner(folder)
+        }
         DispatchQueue.global(qos: .userInitiated).async {
+            // Browse in the order the folder is shown in: read Finder's arrangement for it.
+            let arrangement = follows ? FinderSort.arrangement(for: folder) : nil
+            let order = arrangement?.order ?? (follows ? .byName : fallback)
+            let source = arrangement?.source ?? (follows ? "name (Finder has no setting)" : "View menu")
             let result: Result<MediaNavigator, FolderScanError>
             do throws(FolderScanError) {
                 let items = try FolderScanner.scan(folder: folder)
@@ -270,7 +298,8 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
             }
             DispatchQueue.main.async { [weak self] in
                 guard let self, self.generation == generation else { return }
-                Perf.log.notice("scan: \(Perf.ms(since: start), privacy: .public) ms")
+                Perf.log.notice("scan: \(Perf.ms(since: start), privacy: .public) ms, order \(order.rawValue, privacy: .public) from \(source, privacy: .public)")
+                self.sortSource = source
                 self.scanFinished(result, folder: folder)
             }
         }
@@ -278,9 +307,11 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
 
     private func scanFinished(_ result: Result<MediaNavigator, FolderScanError>, folder: URL) {
         hideSpinner()
+        scanHintTimer?.invalidate()
+        scanHintTimer = nil
+        if case .success = result { banner.isHidden = true }
         switch result {
-        case .success(var scanned):
-            if scanned.sortOrder != sortOrder { scanned.setSortOrder(sortOrder) }
+        case .success(let scanned):
             navigator = scanned
             listVersion += 1
             scanState = .done

@@ -21,6 +21,24 @@ public enum MediaClassifier {
 
     private static let lock = NSLock()
     nonisolated(unsafe) private static var cache: [String: MediaKind?] = [:]
+    nonisolated(unsafe) private static var descriptions: [String: String] = [:]
+
+    /// Finder's "Kind" text for a file, e.g. "JPEG image". Cached per extension.
+    public static func typeDescription(of url: URL) -> String {
+        let ext = url.pathExtension.lowercased()
+        guard !ext.isEmpty else { return "" }
+        lock.lock()
+        if let cached = descriptions[ext] {
+            lock.unlock()
+            return cached
+        }
+        lock.unlock()
+        let description = UTType(filenameExtension: ext)?.localizedDescription ?? ext.uppercased()
+        lock.lock()
+        descriptions[ext] = description
+        lock.unlock()
+        return description
+    }
 
     public static func kind(of url: URL) -> MediaKind? {
         kind(forExtension: url.pathExtension)
