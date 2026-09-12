@@ -82,8 +82,12 @@ enum DebugHook {
             guard parts.count > 1 else { return }
             let sender = NSMenuItem(title: "", action: nil, keyEquivalent: "")
             sender.tag = parts.count > 2 ? Int(parts[2]) ?? 0 : 0
-            Perf.log.notice("debug hook action: \(command, privacy: .public)")
-            NSApp.sendAction(Selector(parts[1]), to: nil, from: sender)
+            let selector = Selector(parts[1])
+            // The responder chain starts at the key window, so fall back to the viewer when
+            // the app isn't frontmost (as it often isn't during scripted checks).
+            var delivered = NSApp.sendAction(selector, to: nil, from: sender)
+            if !delivered, let viewer { delivered = NSApp.sendAction(selector, to: viewer, from: sender) }
+            Perf.log.notice("debug hook action: \(command, privacy: .public) delivered=\(delivered, privacy: .public)")
         default:
             break
         }
