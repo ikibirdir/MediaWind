@@ -16,7 +16,7 @@ extension ViewerWindowController {
         }
         if shownItem == item && shownQuality >= .fit { return }
         stopVideo()
-        imageView.isHidden = true
+        // The photo shown before stays until the video is ready, rather than a blank window.
         messageView.isHidden = true
         shownItem = item
         shownQuality = .fit
@@ -47,6 +47,7 @@ extension ViewerWindowController {
         switch playerItem.status {
         case .readyToPlay:
             hideSpinner()
+            imageView.isHidden = true
             playerView.isHidden = false
             if awaitingFirstFrame {
                 awaitingFirstFrame = false
@@ -151,7 +152,8 @@ extension ViewerWindowController {
         } else {
             player.pause()
         }
-        Perf.log.notice("video scan ended at \(item.currentTime().seconds, privacy: .public) s")    }
+        Perf.log.notice("video scan ended at \(item.currentTime().seconds, privacy: .public) s")
+    }
 }
 
 struct VideoScan {
