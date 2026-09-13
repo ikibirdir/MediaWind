@@ -73,6 +73,13 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
         set { UserDefaults.standard.set(newValue, forKey: "FollowFinderOrder") }
     }
 
+    /// Select the last photo or video in Finder when MediaWind closes (File menu, on by default).
+    var showsInFinderOnClose: Bool {
+        get { UserDefaults.standard.object(forKey: "ShowInFinderOnClose") as? Bool ?? true }
+        set { UserDefaults.standard.set(newValue, forKey: "ShowInFinderOnClose") }
+    }
+    var didShowInFinderOnClose = false
+
     /// The order chosen in the View menu, used when not following Finder.
     var fixedSortOrder: MediaSortOrder {
         get { MediaSortOrder(rawValue: UserDefaults.standard.string(forKey: "SortOrder") ?? "") ?? .byName }
@@ -604,6 +611,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
     }
 
     func windowWillClose(_ notification: Notification) {
+        showInFinderOnClose()
         stopVideo()
         if let keyMonitor { NSEvent.removeMonitor(keyMonitor) }
         keyMonitor = nil

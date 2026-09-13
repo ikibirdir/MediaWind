@@ -85,7 +85,7 @@ PDFs are never claimed. Preview keeps those.
 | Double-click (or two-finger double-tap) | Toggle fit / actual size |
 | Drag | Pan when zoomed in |
 | F or ⌃⌘F | Toggle full screen |
-| Esc | Leave full screen, or close the window (which quits) |
+| Esc | Leave full screen, or close the window (which quits and shows the file in Finder) |
 | Space | Play / pause video |
 | M | Mute / unmute videos |
 | ⌘O | Open… (files or a folder) |
@@ -123,6 +123,8 @@ Arrangements with no equivalent here (manual/grid, tags, labels) fall back to na
   sorted in 0.25–0.35 s in the background.
 - Opening files while the app runs shows them in the same window. Opening several files at once
   browses just those.
+- Closing or quitting MediaWind (Esc, ⌘W, ⌘Q) selects the last photo or video you were viewing in
+  Finder, so it's easy to find again. Turn it off with File ▸ Show in Finder When Closing.
 - Photos are decoded off the main thread at the window's pixel size, and at full resolution only
   when you zoom past that. EXIF orientation is honored. Neighbors are preloaded in the direction
   you're going, and only a few decoded images are cached (with a memory budget and memory-pressure

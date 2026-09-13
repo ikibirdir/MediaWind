@@ -61,6 +61,7 @@ enum MainMenu {
         openWith.submenu = openWithMenu
         menu.addItem(openWith)
         menu.addItem(item("Show in Finder", #selector(ViewerWindowController.showInFinder(_:)), "r", [.command, .shift]))
+        menu.addItem(item("Show in Finder When Closing", #selector(ViewerWindowController.toggleShowInFinderOnClose(_:)), ""))
         menu.addItem(.separator())
         menu.addItem(item("Close Window", #selector(NSWindow.performClose(_:)), "w"))
         return menu

@@ -345,6 +345,20 @@ extension ViewerWindowController: NSMenuItemValidation {
         NSWorkspace.shared.activateFileViewerSelecting([url])
     }
 
+    @objc func toggleShowInFinderOnClose(_ sender: Any?) {
+        showsInFinderOnClose.toggle()
+    }
+
+    /// Closing or quitting selects the last photo or video in Finder, so it's easy to find again.
+    /// Runs once, whichever comes first.
+    func showInFinderOnClose() {
+        guard showsInFinderOnClose, !didShowInFinderOnClose, let url = currentURL,
+              FileManager.default.fileExists(atPath: url.path) else { return }
+        didShowInFinderOnClose = true
+        Perf.log.notice("closing: showing \(url.lastPathComponent, privacy: .public) in Finder")
+        NSWorkspace.shared.activateFileViewerSelecting([url])
+    }
+
     @objc func copy(_ sender: Any?) {
         guard let url = currentURL else { return }
         let pasteboard = NSPasteboard.general
@@ -390,6 +404,9 @@ extension ViewerWindowController: NSMenuItemValidation {
             return player != nil
         case #selector(toggleMute(_:)):
             menuItem.state = isMuted ? .on : .off
+            return true
+        case #selector(toggleShowInFinderOnClose(_:)):
+            menuItem.state = showsInFinderOnClose ? .on : .off
             return true
         case #selector(openInPreview(_:)), #selector(showInFinder(_:)), #selector(copy(_:)),
              #selector(openWithApp(_:)), #selector(openWithOtherApp(_:)):
