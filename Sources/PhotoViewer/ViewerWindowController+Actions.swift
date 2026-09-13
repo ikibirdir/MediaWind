@@ -66,6 +66,7 @@ extension ViewerWindowController {
     }
 
     func stopVideo() {
+        endVideoHold(restoringSpeed: false)
         statusObservation = nil
         muteObservation = nil
         if let player {
@@ -91,6 +92,75 @@ extension ViewerWindowController {
         isMuted.toggle()
         player?.isMuted = isMuted
     }
+
+    /// A video player is on screen (not just a "film" placeholder while flying past).
+    var isShowingVideo: Bool {
+        player != nil && !isFlying && shownItem?.kind == .video && shownItem == navigator.current
+    }
+
+    /// Holding ← or → on a video: plays it at 3× in that direction until the key is released.
+    func startVideoScan(forward: Bool) {
+        videoHoldTimer = nil
+        guard videoScan == nil, let player, let item = player.currentItem else { return }
+        let native = forward ? item.canPlayFastForward : item.canPlayFastReverse
+        let scan = VideoScan(forward: forward, wasPlaying: player.rate != 0, startTime: item.currentTime().seconds,
+                             startedAt: CFAbsoluteTimeGetCurrent())
+        videoScan = scan
+        Perf.log.notice("video scan \(forward ? "forward" : "back", privacy: .public) at \(VideoScan.speed, privacy: .public)× from \(scan.startTime, privacy: .public) s (\(native ? "rate" : "seeking", privacy: .public), \(scan.wasPlaying ? "playing" : "paused", privacy: .public))")
+        if native {
+            player.rate = forward ? VideoScan.speed : -VideoScan.speed
+        } else {
+            player.pause()
+            scanBySeeking(scan)
+        }
+        speedBadge.setText("\(Int(VideoScan.speed))×", symbol: forward ? "forward.fill" : "backward.fill",
+                           symbolFirst: !forward)
+        setVisible(titleOverlay, false)
+        setVisible(speedBadge, true)
+    }
+
+    /// For videos AVFoundation can't play that fast (in that direction): seek to where 3×
+    /// playback would be by now, then again as soon as that frame is on screen.
+    private func scanBySeeking(_ scan: VideoScan) {
+        guard let player, let item = player.currentItem, videoScan?.startedAt == scan.startedAt else { return }
+        let end = item.duration.isNumeric ? item.duration.seconds : .infinity
+        let distance = (CFAbsoluteTimeGetCurrent() - scan.startedAt) * Double(VideoScan.speed)
+        let target = min(max(scan.startTime + (scan.forward ? distance : -distance), 0), end)
+        let reachedEdge = target == 0 || target == end
+        player.seek(to: CMTime(seconds: target, preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] finished in
+            guard finished, !reachedEdge else { return }
+            DispatchQueue.main.async { self?.scanBySeeking(scan) }
+        }
+    }
+
+    /// Ends a hold on ← or →: back to normal speed, or paused if the video was paused.
+    func endVideoHold(restoringSpeed: Bool = true) {
+        videoArrowKey = nil
+        videoHoldTimer?.invalidate()
+        videoHoldTimer = nil
+        guard let scan = videoScan else { return }
+        videoScan = nil
+        speedBadge.isHidden = true
+        speedBadge.alphaValue = 0
+        guard restoringSpeed, let player, let item = player.currentItem else { return }
+        // A seek still on its way would land after release and override resuming.
+        item.cancelPendingSeeks()
+        let atEnd = item.duration.isNumeric && item.currentTime() >= item.duration
+        if scan.wasPlaying && !atEnd {
+            player.play()
+        } else {
+            player.pause()
+        }
+        Perf.log.notice("video scan ended at \(item.currentTime().seconds, privacy: .public) s")    }
+}
+
+struct VideoScan {
+    static let speed: Float = 3
+    let forward: Bool
+    let wasPlaying: Bool
+    /// Where the video was when the hold began, in seconds.
+    let startTime: Double
+    let startedAt: CFAbsoluteTime
 }
 
 // MARK: - Messages

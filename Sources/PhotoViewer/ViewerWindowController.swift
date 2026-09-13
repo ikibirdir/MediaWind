@@ -21,6 +21,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
     let leftArrow = ArrowButton(direction: .left)
     let rightArrow = ArrowButton(direction: .right)
     let titleOverlay = PillLabel()
+    let speedBadge = PillLabel()
     let banner = BannerView()
     let spinner = NSProgressIndicator()
 
@@ -60,6 +61,11 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
     var muteObservation: NSKeyValueObservation?
     /// Videos start muted each launch; unmuting carries over to the next video until quit.
     var isMuted = true
+    /// ← or → pressed while a video is showing: a tap moves on when released, holding it
+    /// scans through the video instead.
+    var videoArrowKey: UInt16?
+    var videoHoldTimer: Timer?
+    var videoScan: VideoScan?
 
     /// Browse in the order Finder shows the folder in (the default), rather than a fixed order.
     var followsFinderOrder: Bool {
@@ -135,7 +141,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
         spinner.appearance = NSAppearance(named: .darkAqua)
         spinner.isDisplayedWhenStopped = false
 
-        let overlays: [NSView] = [leftArrow, rightArrow, titleOverlay, banner, spinner]
+        let overlays: [NSView] = [leftArrow, rightArrow, titleOverlay, speedBadge, banner, spinner]
         for view in overlays {
             view.translatesAutoresizingMaskIntoConstraints = false
             rootView.addSubview(view)
@@ -148,6 +154,8 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
         rightArrow.action = { [weak self] in self?.navigate(.next, source: "arrow button") }
         titleOverlay.alphaValue = 0
         titleOverlay.isHidden = true
+        speedBadge.alphaValue = 0
+        speedBadge.isHidden = true
         banner.isHidden = true
 
         NSLayoutConstraint.activate([
@@ -162,6 +170,8 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
             titleOverlay.topAnchor.constraint(equalTo: rootView.topAnchor, constant: 16),
             titleOverlay.centerXAnchor.constraint(equalTo: rootView.centerXAnchor),
             titleOverlay.widthAnchor.constraint(lessThanOrEqualTo: rootView.widthAnchor, constant: -40),
+            speedBadge.topAnchor.constraint(equalTo: rootView.topAnchor, constant: 16),
+            speedBadge.centerXAnchor.constraint(equalTo: rootView.centerXAnchor),
             banner.bottomAnchor.constraint(equalTo: rootView.bottomAnchor, constant: -20),
             banner.centerXAnchor.constraint(equalTo: rootView.centerXAnchor),
             banner.widthAnchor.constraint(lessThanOrEqualTo: rootView.widthAnchor, constant: -40),
@@ -195,7 +205,11 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
 
         if event.type == .keyUp {
             if event.keyCode == 123 || event.keyCode == 124 {
-                stopFlying()
+                if event.keyCode == videoArrowKey {
+                    videoArrowReleased()
+                } else {
+                    stopFlying()
+                }
                 return true
             }
             return false
@@ -203,8 +217,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
 
         if modifiers.isEmpty {
             switch event.keyCode {
-            case 123: navigate(.previous, isRepeat: event.isARepeat, source: "key"); return true
-            case 124: navigate(.next, isRepeat: event.isARepeat, source: "key"); return true
+            case 123, 124: arrowPressed(event); return true
             case 115: navigate(.first, source: "key"); return true
             case 119: navigate(.last, source: "key"); return true
             case 49: togglePlayPause(nil); return true
@@ -226,6 +239,28 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
             return true
         }
         return false
+    }
+
+    private func arrowPressed(_ event: NSEvent) {
+        let step: NavigationStep = event.keyCode == 123 ? .previous : .next
+        // Auto-repeats of an arrow held on a video (or the other arrow meanwhile) change nothing.
+        if videoArrowKey != nil { return }
+        if !event.isARepeat && isShowingVideo {
+            // Wait to see whether it's a tap (move on when released) or a hold (scan the video).
+            videoArrowKey = event.keyCode
+            videoHoldTimer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: false) { [weak self] _ in
+                self?.startVideoScan(forward: step == .next)
+            }
+            return
+        }
+        navigate(step, isRepeat: event.isARepeat, source: "key")
+    }
+
+    private func videoArrowReleased() {
+        let step: NavigationStep = videoArrowKey == 123 ? .previous : .next
+        let isTap = videoHoldTimer != nil
+        endVideoHold()
+        if isTap { navigate(step, source: "key") }
     }
 
     // MARK: - Opening
@@ -562,6 +597,11 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
     }
 
     // MARK: - Window delegate
+
+    func windowDidResignKey(_ notification: Notification) {
+        // The key-up of a held arrow goes to whichever window is key now.
+        endVideoHold()
+    }
 
     func windowWillClose(_ notification: Notification) {
         stopVideo()

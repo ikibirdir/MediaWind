@@ -56,6 +56,7 @@ PDFs are never claimed. Preview keeps those.
 | ← / → | Previous / next photo or video (stops at the first/last) |
 | fn← / fn→ (Home / End) | First / last |
 | Hold → or ← | Fly through quickly (fast previews), full quality when you let go |
+| Hold → or ← on a video | Fast-forward / rewind at 3× until you let go (a tap still moves on) |
 | ⌘+ (or ⌘=) / ⌘− | Zoom in / out |
 | Pinch | Zoom |
 | ⌘0 | Zoom to fit |
@@ -108,6 +109,10 @@ Arrangements with no equivalent here (manual/grid, tags, labels) fall back to na
 - Holding an arrow key shows embedded thumbnails while flying and full quality once you let go.
 - Videos (AVKit) autoplay muted with standard controls. Space plays/pauses. Moving away stops
   them, sound included. Unmuting carries over to the next video until you quit.
+- On a video, holding → or ← for a moment fast-forwards or rewinds at 3× with a "3×" badge, and
+  goes back to normal speed (or stays paused) when you let go. A quick tap still moves to the
+  next/previous item, on release. Videos AVFoundation can't play that fast backwards are scanned
+  by seeking instead.
 - Animated GIF/PNG/WebP animate.
 - Dark window. Media is scaled down to fit and small images aren't enlarged past 100%. Hover
   arrows appear at the edges. In full screen, a name/position overlay fades when the mouse is
@@ -188,7 +193,8 @@ scripts/make-testdata.sh --large   # 5,000 files (APFS clones, almost no disk sp
 2. Press → a few times without clicking anything. IMG_4 is small and shown at its real size, not
    enlarged. IMG_5 and IMG_6 are videos that autoplay muted. Press → while a video plays: it moves
    on and the sound stops.
-3. On a video, press Space to pause/resume and M to unmute.
+3. On a video, press Space to pause/resume and M to unmute. Hold → for a second: it plays at 3×
+   with a "3×" badge, then normal speed when released. Hold ← to rewind. A quick tap moves on.
 4. IMG_7 animates. IMG_8 and IMG_9 show an upright ✓ (EXIF rotation). IMG_11 shows "Can't
    display" with Show in Finder / Open With.
 5. Hold → for two seconds: pictures fly by, and are sharp once you release. Press fn→ (End) and

@@ -107,6 +107,24 @@ final class PillLabel: NSView {
         set { label.stringValue = newValue }
     }
 
+    /// Text with an SF Symbol beside it, e.g. the "3× ▶▶" badge while scanning a video.
+    func setText(_ text: String, symbol: String, symbolFirst: Bool) {
+        let attachment = NSTextAttachment()
+        attachment.image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil)?
+            .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 11, weight: .bold)
+                .applying(NSImage.SymbolConfiguration(paletteColors: [.white])))
+        let icon = NSAttributedString(attachment: attachment)
+        let words = NSAttributedString(string: text)
+        let string = NSMutableAttributedString()
+        for part in symbolFirst ? [icon, words] : [words, icon] {
+            if string.length > 0 { string.append(NSAttributedString(string: " ")) }
+            string.append(part)
+        }
+        string.addAttributes([.font: label.font ?? .systemFont(ofSize: 13), .foregroundColor: NSColor.white],
+                             range: NSRange(location: 0, length: string.length))
+        label.attributedStringValue = string
+    }
+
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         wantsLayer = true

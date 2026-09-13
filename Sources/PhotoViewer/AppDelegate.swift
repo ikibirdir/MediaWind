@@ -124,6 +124,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         alert.messageText = "Keyboard Shortcuts"
         alert.informativeText = """
         ← / →\tPrevious / next photo or video
+        Hold ← / → on a video\tRewind / fast-forward at 3×
         fn← / fn→ (Home / End)\tFirst / last
         ⌘+ / ⌘−\tZoom in / out
         ⌘0\tZoom to fit

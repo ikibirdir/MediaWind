@@ -146,6 +146,10 @@ enum DebugHook {
             state["playerVisible"] = !viewer.playerView.isHidden
             state["playerRate"] = viewer.player.map { Double($0.rate) } ?? NSNull()
             state["playerMuted"] = viewer.player.map { $0.isMuted } ?? NSNull()
+            state["playerTime"] = viewer.player.map { $0.currentTime().seconds } ?? NSNull()
+            state["canPlayFastReverse"] = viewer.player?.currentItem.map { $0.canPlayFastReverse } ?? NSNull()
+            state["videoScan"] = viewer.videoScan.map { $0.forward ? "forward" : "back" } ?? NSNull()
+            state["speedBadgeVisible"] = !viewer.speedBadge.isHidden
             state["messageVisible"] = !viewer.messageView.isHidden
             state["messageTitle"] = viewer.messageView.isHidden ? NSNull() : viewer.messageView.title
             state["bannerVisible"] = !viewer.banner.isHidden
