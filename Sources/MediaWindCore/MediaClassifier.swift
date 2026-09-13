@@ -6,7 +6,7 @@ public enum MediaKind: String, Sendable {
     case video
 }
 
-/// Decides whether a file is a photo, a video, or something PhotoViewer ignores.
+/// Decides whether a file is a photo, a video, or something MediaWind ignores.
 public enum MediaClassifier {
     /// Video containers that macOS may not declare as movies, but that people keep next to
     /// their photos. They are listed so browsing shows them (with a "can't play" message if

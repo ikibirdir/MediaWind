@@ -1,5 +1,5 @@
 #!/bin/bash
-# Runs the unit tests for PhotoViewerCore.
+# Runs the unit tests for MediaWindCore.
 #
 # With only the Command Line Tools installed, Swift Testing ships outside the
 # compiler's default search paths, so point the compiler and linker at it.

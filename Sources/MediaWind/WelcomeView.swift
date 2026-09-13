@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// Shown only when PhotoViewer is launched without a file.
+/// Shown only when MediaWind is launched without a file.
 struct WelcomeView: View {
     let open: () -> Void
     let makeDefaultForPhotos: () -> Void
@@ -17,9 +17,9 @@ struct WelcomeView: View {
             Image(nsImage: NSApp.applicationIconImage)
                 .resizable()
                 .frame(width: 72, height: 72)
-            Text("PhotoViewer")
+            Text("MediaWind")
                 .font(.title.bold())
-            Text("Double-click a photo in Finder, or choose File ▸ Open With ▸ PhotoViewer.\nThen use ← → to browse everything in that folder.")
+            Text("Double-click a photo in Finder, or choose File ▸ Open With ▸ MediaWind.\nThen use ← → to browse everything in that folder.")
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)

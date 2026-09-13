@@ -1,5 +1,5 @@
 import AppKit
-import PhotoViewerCore
+import MediaWindCore
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -76,7 +76,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         ))
         let window = NSWindow(contentViewController: hosting)
         window.styleMask = [.titled, .closable, .miniaturizable]
-        window.title = "PhotoViewer"
+        window.title = "MediaWind"
         window.isReleasedWhenClosed = false
         window.isRestorable = false
         window.collectionBehavior = [.fullScreenNone]
@@ -108,11 +108,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc func makeDefaultForPhotos(_ sender: Any?) {
-        DefaultApps.confirmAndSet(.photos, toPhotoViewer: true)
+        DefaultApps.confirmAndSet(.photos, toMediaWind: true)
     }
 
     @objc func makeDefaultForVideos(_ sender: Any?) {
-        DefaultApps.confirmAndSet(.videos, toPhotoViewer: true)
+        DefaultApps.confirmAndSet(.videos, toMediaWind: true)
     }
 
     @objc func restoreSystemDefaults(_ sender: Any?) {

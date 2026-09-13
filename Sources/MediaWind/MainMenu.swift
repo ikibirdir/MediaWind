@@ -1,5 +1,5 @@
 import AppKit
-import PhotoViewerCore
+import MediaWindCore
 
 /// Builds the menu bar in code. Every command lives here with its shortcut. Viewer commands
 /// have a nil target, so they reach ViewerWindowController through the responder chain and
@@ -22,13 +22,13 @@ enum MainMenu {
     }
 
     private static func appMenu() -> NSMenu {
-        let menu = NSMenu(title: "PhotoViewer")
-        menu.addItem(item("About PhotoViewer", #selector(NSApplication.orderFrontStandardAboutPanel(_:)), ""))
+        let menu = NSMenu(title: "MediaWind")
+        menu.addItem(item("About MediaWind", #selector(NSApplication.orderFrontStandardAboutPanel(_:)), ""))
         menu.addItem(.separator())
 
         let defaults = NSMenu(title: "Default Viewer")
-        defaults.addItem(item("Make PhotoViewer the Default for Photos…", #selector(AppDelegate.makeDefaultForPhotos(_:)), ""))
-        defaults.addItem(item("Make PhotoViewer the Default for Videos…", #selector(AppDelegate.makeDefaultForVideos(_:)), ""))
+        defaults.addItem(item("Make MediaWind the Default for Photos…", #selector(AppDelegate.makeDefaultForPhotos(_:)), ""))
+        defaults.addItem(item("Make MediaWind the Default for Videos…", #selector(AppDelegate.makeDefaultForVideos(_:)), ""))
         defaults.addItem(.separator())
         defaults.addItem(item("Restore Preview and QuickTime Player…", #selector(AppDelegate.restoreSystemDefaults(_:)), ""))
         let defaultsItem = NSMenuItem(title: "Default Viewer", action: nil, keyEquivalent: "")
@@ -42,11 +42,11 @@ enum MainMenu {
         NSApp.servicesMenu = services
         menu.addItem(servicesItem)
         menu.addItem(.separator())
-        menu.addItem(item("Hide PhotoViewer", #selector(NSApplication.hide(_:)), "h"))
+        menu.addItem(item("Hide MediaWind", #selector(NSApplication.hide(_:)), "h"))
         menu.addItem(item("Hide Others", #selector(NSApplication.hideOtherApplications(_:)), "h", [.command, .option]))
         menu.addItem(item("Show All", #selector(NSApplication.unhideAllApplications(_:)), ""))
         menu.addItem(.separator())
-        menu.addItem(item("Quit PhotoViewer", #selector(NSApplication.terminate(_:)), "q"))
+        menu.addItem(item("Quit MediaWind", #selector(NSApplication.terminate(_:)), "q"))
         return menu
     }
 
@@ -157,7 +157,7 @@ enum MainMenu {
     }
 }
 
-/// Fills File ▸ Open With with the apps that can open the current file, never PhotoViewer itself.
+/// Fills File ▸ Open With with the apps that can open the current file, never MediaWind itself.
 final class OpenWithMenuDelegate: NSObject, NSMenuDelegate {
     static let shared = OpenWithMenuDelegate()
 

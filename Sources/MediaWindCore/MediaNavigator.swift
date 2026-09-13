@@ -1,6 +1,6 @@
 import Foundation
 
-/// The orders Finder can arrange a folder by, and that PhotoViewer can follow.
+/// The orders Finder can arrange a folder by, and that MediaWind can follow.
 public enum MediaSortKey: String, CaseIterable, Sendable {
     case name
     case kind

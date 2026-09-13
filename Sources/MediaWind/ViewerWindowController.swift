@@ -1,6 +1,6 @@
 import AppKit
 import AVKit
-import PhotoViewerCore
+import MediaWindCore
 
 /// The one viewer window: shows the current photo or video and flips through the list.
 final class ViewerWindowController: NSWindowController, NSWindowDelegate {
@@ -97,7 +97,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
         window.isRestorable = false
         window.tabbingMode = .disallowed
         window.isReleasedWhenClosed = false
-        window.title = "PhotoViewer"
+        window.title = "MediaWind"
         super.init(window: window)
         window.delegate = self
 
@@ -363,7 +363,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
             showAccessBanner(folder)
             if navigator.isEmpty {
                 showMessage(symbol: "lock", title: "Can't open this folder",
-                            detail: "macOS didn't allow PhotoViewer to read “\(folder.lastPathComponent)”.", item: nil)
+                            detail: "macOS didn't allow MediaWind to read “\(folder.lastPathComponent)”.", item: nil)
             }
             updateTitle()
         case .failure:
@@ -531,7 +531,7 @@ final class ViewerWindowController: NSWindowController, NSWindowDelegate {
 
     func updateTitle() {
         guard let item = navigator.current else {
-            window?.title = "PhotoViewer"
+            window?.title = "MediaWind"
             window?.representedURL = nil
             titleOverlay.text = ""
             return

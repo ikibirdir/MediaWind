@@ -4,20 +4,20 @@ import AVKit
 /// Test hook for automated checks without Accessibility or Screen Recording permissions.
 /// Inactive unless the app is launched with
 ///
-///     open --env PHOTOVIEWER_DEBUG=1 -a /Applications/PhotoViewer.app photo.jpg
+///     open --env MEDIAWIND_DEBUG=1 -a /Applications/MediaWind.app photo.jpg
 ///
-/// Commands arrive as distributed notifications named "com.ikibirdir.PhotoViewer.debug"
-/// whose object is a string (see scripts/pvdebug.swift):
+/// Commands arrive as distributed notifications named "com.ikibirdir.MediaWind.debug"
+/// whose object is a string (see scripts/mwdebug.swift):
 ///   key <keyCode> [cmd|ctrl|shift|opt]...   key down + up, through NSApp.sendEvent like a real key
 ///   down <keyCode> / repeat <keyCode> / up <keyCode>
 ///   state <path>       writes JSON describing the window
 ///   snapshot <path>    renders the window's layers to a PNG
 enum DebugHook {
-    static let notification = Notification.Name("com.ikibirdir.PhotoViewer.debug")
+    static let notification = Notification.Name("com.ikibirdir.MediaWind.debug")
     nonisolated(unsafe) private static var observer: NSObjectProtocol?
 
     static func installIfRequested(viewer: @escaping () -> ViewerWindowController?) {
-        guard ProcessInfo.processInfo.environment["PHOTOVIEWER_DEBUG"] == "1" else { return }
+        guard ProcessInfo.processInfo.environment["MEDIAWIND_DEBUG"] == "1" else { return }
         observer = DistributedNotificationCenter.default().addObserver(forName: notification, object: nil, queue: .main) { note in
             guard let command = note.object as? String else { return }
             handle(command, viewer: viewer())

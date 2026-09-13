@@ -2,17 +2,17 @@
 import PackageDescription
 
 let package = Package(
-    name: "PhotoViewer",
+    name: "MediaWind",
     platforms: [.macOS(.v26)],
     products: [
-        .executable(name: "PhotoViewer", targets: ["PhotoViewer"]),
+        .executable(name: "MediaWind", targets: ["MediaWind"]),
     ],
     targets: [
         // Folder scanning, filtering, sorting and previous/next logic. No UI.
-        .target(name: "PhotoViewerCore"),
+        .target(name: "MediaWindCore"),
         // The AppKit app.
-        .executableTarget(name: "PhotoViewer", dependencies: ["PhotoViewerCore"]),
-        .testTarget(name: "PhotoViewerCoreTests", dependencies: ["PhotoViewerCore"]),
+        .executableTarget(name: "MediaWind", dependencies: ["MediaWindCore"]),
+        .testTarget(name: "MediaWindCoreTests", dependencies: ["MediaWindCore"]),
     ],
     swiftLanguageModes: [.v5]
 )

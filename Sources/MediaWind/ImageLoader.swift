@@ -64,7 +64,7 @@ final class ImageLoader {
 
     private let decodeQueue: OperationQueue = {
         let queue = OperationQueue()
-        queue.name = "PhotoViewer.decode"
+        queue.name = "MediaWind.decode"
         queue.maxConcurrentOperationCount = 3
         queue.qualityOfService = .userInitiated
         return queue
@@ -73,7 +73,7 @@ final class ImageLoader {
     /// One at a time and latest-wins, so holding an arrow key never builds a backlog.
     private let previewQueue: OperationQueue = {
         let queue = OperationQueue()
-        queue.name = "PhotoViewer.preview"
+        queue.name = "MediaWind.preview"
         queue.maxConcurrentOperationCount = 1
         queue.qualityOfService = .userInteractive
         return queue

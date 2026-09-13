@@ -1,12 +1,12 @@
-// Sends test commands to a PhotoViewer launched with PHOTOVIEWER_DEBUG=1 (see DebugHook.swift).
+// Sends test commands to a MediaWind launched with MEDIAWIND_DEBUG=1 (see DebugHook.swift).
 //
-//   swiftc -O scripts/pvdebug.swift -o .build/pvdebug
-//   .build/pvdebug "key 124" "wait 300" "state /tmp/pv.json"
+//   swiftc -O scripts/mwdebug.swift -o .build/mwdebug
+//   .build/mwdebug "key 124" "wait 300" "state /tmp/pv.json"
 //
 // Each argument is one command; "wait <ms>" pauses; "state <path>" also prints the JSON.
 import Foundation
 
-let name = Notification.Name("com.ikibirdir.PhotoViewer.debug")
+let name = Notification.Name("com.ikibirdir.MediaWind.debug")
 
 func post(_ command: String) {
     DistributedNotificationCenter.default().postNotificationName(name, object: command, userInfo: nil,

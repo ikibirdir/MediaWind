@@ -5,15 +5,15 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleExecutable</key>
-	<string>PhotoViewer</string>
+	<string>MediaWind</string>
 	<key>CFBundleIdentifier</key>
 	<string>__BUNDLE_ID__</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>PhotoViewer</string>
+	<string>MediaWind</string>
 	<key>CFBundleDisplayName</key>
-	<string>PhotoViewer</string>
+	<string>MediaWind</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -38,15 +38,15 @@
 	<string>A fast photo and video viewer.</string>
 
 	<key>NSDesktopFolderUsageDescription</key>
-	<string>PhotoViewer lists the other photos and videos in the folder you opened so you can browse them with the arrow keys.</string>
+	<string>MediaWind lists the other photos and videos in the folder you opened so you can browse them with the arrow keys.</string>
 	<key>NSDocumentsFolderUsageDescription</key>
-	<string>PhotoViewer lists the other photos and videos in the folder you opened so you can browse them with the arrow keys.</string>
+	<string>MediaWind lists the other photos and videos in the folder you opened so you can browse them with the arrow keys.</string>
 	<key>NSDownloadsFolderUsageDescription</key>
-	<string>PhotoViewer lists the other photos and videos in the folder you opened so you can browse them with the arrow keys.</string>
+	<string>MediaWind lists the other photos and videos in the folder you opened so you can browse them with the arrow keys.</string>
 	<key>NSRemovableVolumesUsageDescription</key>
-	<string>PhotoViewer lists the other photos and videos in the folder you opened on this drive so you can browse them with the arrow keys.</string>
+	<string>MediaWind lists the other photos and videos in the folder you opened on this drive so you can browse them with the arrow keys.</string>
 	<key>NSNetworkVolumesUsageDescription</key>
-	<string>PhotoViewer lists the other photos and videos in the folder you opened on this network volume so you can browse them with the arrow keys.</string>
+	<string>MediaWind lists the other photos and videos in the folder you opened on this network volume so you can browse them with the arrow keys.</string>
 
 	<key>CFBundleDocumentTypes</key>
 	<array>

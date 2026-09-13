@@ -1,7 +1,7 @@
 #!/bin/bash
-# Builds PhotoViewer.app from the Swift package.
+# Builds MediaWind.app from the Swift package.
 #
-#   ./build.sh            build .build/app.noindex/PhotoViewer.app
+#   ./build.sh            build .build/app.noindex/MediaWind.app
 #   ./build.sh --install  ...and copy it to /Applications, register it with LaunchServices
 #
 # The build copy lives in a ".noindex" folder and is explicitly unregistered, so Finder's
@@ -9,8 +9,8 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-APP_NAME="PhotoViewer"
-BUNDLE_ID="com.ikibirdir.PhotoViewer"
+APP_NAME="MediaWind"
+BUNDLE_ID="com.ikibirdir.MediaWind"
 VERSION="1.0"
 BUILD_NUMBER="$(date +%Y%m%d%H%M%S)"
 LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"

@@ -1,4 +1,4 @@
-// Generates test images for PhotoViewer. Run through scripts/make-testdata.sh.
+// Generates test images for MediaWind. Run through scripts/make-testdata.sh.
 //
 //   swift scripts/MakeTestData.swift <output-folder> [count]     the regular test folder
 //   swift scripts/MakeTestData.swift --large <output-folder> [n]  n files (APFS clones) for speed tests

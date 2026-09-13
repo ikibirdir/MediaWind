@@ -8,7 +8,7 @@ enum MediaGroup {
 /// Changing which app opens photos/videos. Only ever runs when the user picks the menu
 /// command or welcome-window button, and always asks first.
 enum DefaultApps {
-    static let didChange = Notification.Name("PhotoViewerDefaultAppsDidChange")
+    static let didChange = Notification.Name("MediaWindDefaultAppsDidChange")
 
     static let photoTypes: [UTType] = [
         "public.jpeg", "public.heic", "public.heif", "public.png", "com.compuserve.gif", "public.tiff",
@@ -39,21 +39,21 @@ enum DefaultApps {
         FileManager.default.displayName(atPath: url.path).replacingOccurrences(of: ".app", with: "")
     }
 
-    static func confirmAndSet(_ group: MediaGroup, toPhotoViewer: Bool) {
+    static func confirmAndSet(_ group: MediaGroup, toMediaWind: Bool) {
         let types = types(for: group)
         let what = group == .photos ? "photos" : "videos"
         let alert = NSAlert()
-        alert.messageText = "Make PhotoViewer the default app for \(what)?"
+        alert.messageText = "Make MediaWind the default app for \(what)?"
         alert.informativeText = """
-        Double-clicking these files in Finder will open PhotoViewer:
+        Double-clicking these files in Finder will open MediaWind:
         \(extensionList(types))
 
-        You can undo this with PhotoViewer ▸ Default Viewer ▸ Restore Preview and QuickTime Player.
+        You can undo this with MediaWind ▸ Default Viewer ▸ Restore Preview and QuickTime Player.
         """
         alert.addButton(withTitle: "Make Default")
         alert.addButton(withTitle: "Cancel")
         guard alert.runModal() == .alertFirstButtonReturn else { return }
-        setDefault(Bundle.main.bundleURL, for: types, description: "PhotoViewer is now the default for \(what).")
+        setDefault(Bundle.main.bundleURL, for: types, description: "MediaWind is now the default for \(what).")
     }
 
     static func confirmRestore() {
@@ -122,7 +122,7 @@ enum DefaultApps {
     }
 }
 
-/// Apps that can open a file, excluding PhotoViewer itself so "open in another app" can
+/// Apps that can open a file, excluding MediaWind itself so "open in another app" can
 /// never loop back here.
 enum OtherApps {
     struct App {
@@ -158,7 +158,7 @@ enum OtherApps {
         }
     }
 
-    /// Lets the user pick any app; refuses PhotoViewer itself.
+    /// Lets the user pick any app; refuses MediaWind itself.
     static func chooseApp(for file: URL, window: NSWindow?) {
         let panel = NSOpenPanel()
         panel.directoryURL = URL(fileURLWithPath: "/Applications")

@@ -1,6 +1,6 @@
 import AppKit
 import AVKit
-import PhotoViewerCore
+import MediaWindCore
 
 // MARK: - Video
 
@@ -185,7 +185,7 @@ extension ViewerWindowController {
                      detail: "The file may be damaged, or it's in a format macOS can't read.")
     }
 
-    /// A clear message plus a way out: Show in Finder, or open in another app (never PhotoViewer).
+    /// A clear message plus a way out: Show in Finder, or open in another app (never MediaWind).
     func showCantOpen(_ item: MediaItem, title: String, detail: String) {
         let finder = NSButton(title: "Show in Finder", target: self, action: #selector(showInFinder(_:)))
         let openWith = NSPopUpButton(frame: .zero, pullsDown: true)
@@ -213,7 +213,7 @@ extension ViewerWindowController {
         dismiss.controlSize = .small
         banner.configure(
             text: "Waiting for permission to read “\(folder.lastPathComponent)”. If macOS asked whether "
-                + "PhotoViewer may access this folder, click Allow; until then only this file is shown.",
+                + "MediaWind may access this folder, click Allow; until then only this file is shown.",
             buttons: [settings, dismiss])
         banner.isHidden = false
     }
@@ -224,7 +224,7 @@ extension ViewerWindowController {
         let dismiss = NSButton(title: "Dismiss", target: self, action: #selector(dismissBanner(_:)))
         dismiss.controlSize = .small
         banner.configure(
-            text: "PhotoViewer isn't allowed to read the folder “\(folder.lastPathComponent)”, so only this file is shown. "
+            text: "MediaWind isn't allowed to read the folder “\(folder.lastPathComponent)”, so only this file is shown. "
                 + "To browse it with ← →, turn on access in Privacy & Security ▸ Files and Folders, then open the file again.",
             buttons: [settings, dismiss])
         banner.isHidden = false

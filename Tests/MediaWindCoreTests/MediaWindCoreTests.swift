@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import PhotoViewerCore
+@testable import MediaWindCore
 
 // MARK: - Helpers
 
@@ -19,7 +19,7 @@ private func names(_ items: [MediaItem]) -> [String] { items.map(\.name) }
 
 private func makeTempFolder() throws -> URL {
     let url = FileManager.default.temporaryDirectory
-        .appendingPathComponent("PhotoViewerTests-\(UUID().uuidString)", isDirectory: true)
+        .appendingPathComponent("MediaWindTests-\(UUID().uuidString)", isDirectory: true)
     try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
     return url
 }

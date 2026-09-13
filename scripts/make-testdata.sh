@@ -1,5 +1,5 @@
 #!/bin/bash
-# Generates test media for PhotoViewer. Only writes inside the output folder.
+# Generates test media for MediaWind. Only writes inside the output folder.
 #
 #   scripts/make-testdata.sh [folder]          ~300 photos in several formats and sizes, an animated
 #                                              GIF, EXIF-rotated photos, videos, junk files.
