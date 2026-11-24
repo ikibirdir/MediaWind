@@ -350,13 +350,26 @@ extension ViewerWindowController: NSMenuItemValidation {
     }
 
     /// Closing or quitting selects the last photo or video in Finder, so it's easy to find again.
-    /// Runs once, whichever comes first.
+    /// Runs once, whichever comes first. Skipped for files on the Desktop: they're already in
+    /// view, and Finder would only open a separate Desktop window.
     func showInFinderOnClose() {
         guard showsInFinderOnClose, !didShowInFinderOnClose, let url = currentURL,
               FileManager.default.fileExists(atPath: url.path) else { return }
         didShowInFinderOnClose = true
+        if Self.isOnDesktop(url) {
+            Perf.log.notice("closing: \(url.lastPathComponent, privacy: .public) is on the Desktop, not showing in Finder")
+            return
+        }
         Perf.log.notice("closing: showing \(url.lastPathComponent, privacy: .public) in Finder")
         NSWorkspace.shared.activateFileViewerSelecting([url])
+    }
+
+    /// True if the file sits directly on the Desktop (not in a folder on it).
+    static func isOnDesktop(_ url: URL) -> Bool {
+        guard let desktop = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first
+        else { return false }
+        let parent = url.deletingLastPathComponent().resolvingSymlinksInPath().standardizedFileURL
+        return parent.path == desktop.resolvingSymlinksInPath().standardizedFileURL.path
     }
 
     @objc func copy(_ sender: Any?) {

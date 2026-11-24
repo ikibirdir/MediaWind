@@ -124,7 +124,8 @@ Arrangements with no equivalent here (manual/grid, tags, labels) fall back to na
 - Opening files while the app runs shows them in the same window. Opening several files at once
   browses just those.
 - Closing or quitting MediaWind (Esc, ⌘W, ⌘Q) selects the last photo or video you were viewing in
-  Finder, so it's easy to find again. Turn it off with File ▸ Show in Finder When Closing.
+  Finder, so it's easy to find again. Files on the Desktop are skipped, since they're already in
+  view. Turn it off with File ▸ Show in Finder When Closing.
 - Photos are decoded off the main thread at the window's pixel size, and at full resolution only
   when you zoom past that. EXIF orientation is honored. Neighbors are preloaded in the direction
   you're going, and only a few decoded images are cached (with a memory budget and memory-pressure
